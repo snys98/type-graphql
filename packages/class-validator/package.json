@@ -1,0 +1,44 @@
+{
+  "name": "@typegraphql/class-validator",
+  "version": "1.0.0-next.0",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "scripts": {
+    "test": "jest --coverage --verbose",
+    "postinstall": "node ./lib/postinstall.js",
+    "prepublishOnly": "ttsc -b"
+  },
+  "peerDependencies": {
+    "@typegraphql/core": "*",
+    "@types/node": "*",
+    "class-validator": "^0.10.0"
+  },
+  "dependencies": {
+    "tslib": "^1.10.0"
+  },
+  "devDependencies": {
+    "@typegraphql/core": "file:../core",
+    "@types/node": "^12.7.5",
+    "@zerollup/ts-transform-paths": "^1.7.3",
+    "class-validator": "^0.10.0",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0",
+    "ttypescript": "^1.5.7",
+    "typescript": "^3.6.3"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.3"
+  },
+  "author": {
+    "name": "Michał Lytek",
+    "url": "https://github.com/19majkel94"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/19majkel94/type-graphql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/19majkel94/type-graphql/issues"
+  }
+}

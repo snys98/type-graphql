@@ -1,0 +1,7 @@
+# Override .gitignore ignoring the output folder
+
+# tests folder
+tests
+
+# config files
+./jest.config.js ./tsconfig.json ./tsconfig.tsbuildinfo

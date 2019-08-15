@@ -1,8 +1,14 @@
 # node modules
 **/node_modules
 
-# builded sources
+# log files
+**/*.log
+
+# builded artifacts
 **/build
+**/dist
+**/lib
+**/*.tsbuildinfo
 
 # coverage reports
 **/coverage

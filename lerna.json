@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0-next.0",
+  "packages": [
+    "packages/*"
+  ],
+  "npmClient": "npm",
+  "ignoreChanges": [
+    "**/tests/**",
+    "**/docs/**",
+    "**/lib/**",
+    "**/*.md"
+  ],
+  "command": {
+    "version": {
+      "_allowBranch": "master",
+      "conventionalCommits": true,
+      "_createRelease": "github",
+      "exact": true,
+      "forcePublish": true,
+      "message": "chore(release): %s",
+      "no-push": true,
+      "preid": "next"
+    },
+    "publish": {
+      "distTag": "latest",
+      "preDistTag": "next",
+      "registry": "http://192.168.99.100:4873/"
+    }
+  }
+}

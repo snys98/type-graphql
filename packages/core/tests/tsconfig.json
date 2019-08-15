@@ -1,0 +1,16 @@
+{
+  "extends": "../../../tsconfig.settings.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@typegraphql/core": ["../lib"],
+      "@tests/*": ["./*"]
+    },
+    "plugins": [
+      {
+        "transform": "@zerollup/ts-transform-paths",
+        "exclude": ["*"]
+      }
+    ]
+  }
+}

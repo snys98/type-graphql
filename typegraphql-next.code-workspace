@@ -1,0 +1,18 @@
+{
+  "folders": [
+    { "path": ".", "name": "root" },
+    { "path": "packages\\core" },
+    { "path": "packages\\class-validator" }
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "eslint.enable": true,
+    "eslint.validate": [
+      "typescript",
+      "typescriptreact"
+    ],
+    "cSpell.words": [
+      "typegraphql"
+    ]
+  }
+}
