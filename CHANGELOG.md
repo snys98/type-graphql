@@ -2,6 +2,7 @@
 
 ## Unreleased
 <!-- here goes all the unreleased changes descriptions -->
+- add support for normal directives with `@Directive()` decorator (#369)
 ### Features
 - **Breaking Change**: emit in schema only types actually used by provided resolvers classes (#415)
 - **Breaking Change**: update `graphql-js` peer dependency to `^14.5.8`
