@@ -148,7 +148,7 @@ describe("Description", () => {
       )!;
       const methodField = sampleObjectType.fields.find(field => field.name === "methodField")!;
 
-      expect(normalField.description).toBeNull();
+      expect(normalField.description).toBeFalsy();
       expect(describedField.description).toEqual("sample object field description");
       expect(describedGetterField.description).toEqual("sample object getter field description");
       expect(methodField.description).toEqual("sample object method field description");
@@ -158,7 +158,7 @@ describe("Description", () => {
       const normalQuery = queryType.fields.find(field => field.name === "normalQuery")!;
       const describedQuery = queryType.fields.find(field => field.name === "describedQuery")!;
 
-      expect(normalQuery.description).toBeNull();
+      expect(normalQuery.description).toBeFalsy();
       expect(describedQuery.description).toEqual("sample query description");
     });
 
@@ -168,7 +168,7 @@ describe("Description", () => {
       const describedArg = describedQuery.args.find(arg => arg.name === "describedArg")!;
 
       expect(describedQuery.args).toHaveLength(2);
-      expect(normalArg.description).toBeNull();
+      expect(normalArg.description).toBeFalsy();
       expect(describedArg.description).toEqual("sample query arg description");
     });
 
@@ -178,7 +178,7 @@ describe("Description", () => {
       const describedField = argumentedQuery.args.find(arg => arg.name === "describedField")!;
 
       expect(argumentedQuery.args).toHaveLength(2);
-      expect(normalField.description).toBeNull();
+      expect(normalField.description).toBeFalsy();
       expect(describedField.description).toEqual("sample argument field description");
     });
 
@@ -188,7 +188,7 @@ describe("Description", () => {
         field => field.name === "describedMutation",
       )!;
 
-      expect(normalMutation.description).toBeNull();
+      expect(normalMutation.description).toBeFalsy();
       expect(describedMutation.description).toEqual("sample mutation description");
     });
 
@@ -198,7 +198,7 @@ describe("Description", () => {
       const describedArg = describedQuery.args.find(arg => arg.name === "describedArg")!;
 
       expect(describedQuery.args).toHaveLength(2);
-      expect(normalArg.description).toBeNull();
+      expect(normalArg.description).toBeFalsy();
       expect(describedArg.description).toEqual("sample mutation arg description");
     });
 
@@ -210,7 +210,7 @@ describe("Description", () => {
       const describedField = argumentedMutation.args.find(arg => arg.name === "describedField")!;
 
       expect(argumentedMutation.args).toHaveLength(2);
-      expect(normalField.description).toBeNull();
+      expect(normalField.description).toBeFalsy();
       expect(describedField.description).toEqual("sample argument field description");
     });
 
@@ -231,7 +231,7 @@ describe("Description", () => {
         field => field.name === "describedField",
       )!;
 
-      expect(normalField.description).toBeNull();
+      expect(normalField.description).toBeFalsy();
       expect(describedField.description).toEqual("sample input field description");
     });
   });

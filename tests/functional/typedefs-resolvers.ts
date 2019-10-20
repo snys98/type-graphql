@@ -237,7 +237,6 @@ describe("buildTypeDefsAndResolvers", () => {
     pubSub = new PubSub();
     ({ typeDefs, resolvers } = await buildTypeDefsAndResolvers({
       resolvers: [SampleResolver],
-      authChecker: () => false,
       pubSub,
       container: Container,
       orphanedTypes: [SampleType1],

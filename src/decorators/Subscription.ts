@@ -35,9 +35,16 @@ export function Subscription(
   const params = getTypeDecoratorParams(returnTypeFuncOrOptions, maybeOptions);
   const options = params.options as SubscriptionOptions;
   return (prototype, methodName) => {
-    const metadata = getResolverMetadata(prototype, methodName, params.returnTypeFunc, options);
+    const metadata = getResolverMetadata(
+      prototype,
+      methodName,
+      "Subscription",
+      params.returnTypeFunc,
+      options,
+    );
+    metadata.type = "Subscription";
     if (Array.isArray(options.topics) && options.topics.length === 0) {
-      throw new MissingSubscriptionTopicsError(metadata.target, metadata.methodName);
+      throw new MissingSubscriptionTopicsError(metadata.target, metadata.name);
     }
     getMetadataStorage().collectSubscriptionHandlerMetadata({
       ...metadata,

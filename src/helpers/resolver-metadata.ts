@@ -6,6 +6,7 @@ import { SymbolKeysNotSupportedError } from "../errors";
 export function getResolverMetadata(
   prototype: object,
   propertyKey: string | symbol,
+  resolverType: "Query" | "Mutation" | "Subscription",
   returnTypeFunc?: ReturnTypeFunc,
   options: AdvancedOptions = {},
 ): ResolverMetadata {
@@ -24,8 +25,9 @@ export function getResolverMetadata(
   const methodName = propertyKey as keyof typeof prototype;
 
   return {
-    methodName,
+    name: methodName,
     schemaName: options.name || methodName,
+    type: resolverType,
     target: prototype.constructor,
     getReturnType: getType,
     returnTypeOptions: typeOptions,

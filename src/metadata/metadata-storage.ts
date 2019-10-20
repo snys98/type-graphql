@@ -23,6 +23,8 @@ import {
 } from "./utils";
 import { ObjectClassMetadata } from "./definitions/object-class-metdata";
 import { InterfaceClassMetadata } from "./definitions/interface-class-metadata";
+import { shield } from "graphql-shield";
+import { IMiddlewareGenerator } from "graphql-middleware";
 
 export class MetadataStorage {
   queries: ResolverMetadata[] = [];
@@ -38,8 +40,10 @@ export class MetadataStorage {
   unions: UnionMetadataWithSymbol[] = [];
   middlewares: MiddlewareMetadata[] = [];
 
+  permissions: IMiddlewareGenerator<any, any, any>;
+  fields: FieldMetadata[] = [];
+
   private resolverClasses: ResolverClassMetadata[] = [];
-  private fields: FieldMetadata[] = [];
   private params: ParamMetadata[] = [];
 
   constructor() {
@@ -111,7 +115,6 @@ export class MetadataStorage {
     this.buildResolversMetadata(this.queries);
     this.buildResolversMetadata(this.mutations);
     this.buildResolversMetadata(this.subscriptions);
-
     this.buildExtendedResolversMetadata();
   }
 
@@ -138,7 +141,7 @@ export class MetadataStorage {
     definitions.forEach(def => {
       const fields = this.fields.filter(field => field.target === def.target);
       fields.forEach(field => {
-        field.roles = this.findFieldRoles(field.target, field.name);
+        field.rule = this.findFieldRules(field.target, field.name);
         field.params = this.params.filter(
           param => param.target === field.target && field.name === param.methodName,
         );
@@ -159,12 +162,12 @@ export class MetadataStorage {
       )!;
       def.resolverClassMetadata = resolverClassMetadata;
       def.params = this.params.filter(
-        param => param.target === def.target && def.methodName === param.methodName,
+        param => param.target === def.target && def.name === param.methodName,
       );
-      def.roles = this.findFieldRoles(def.target, def.methodName);
+      def.rule = this.findFieldRules(def.target, def.name);
       def.middlewares = mapMiddlewareMetadataToArray(
         this.middlewares.filter(
-          middleware => middleware.target === def.target && def.methodName === middleware.fieldName,
+          middleware => middleware.target === def.target && def.name === middleware.fieldName,
         ),
       );
     });
@@ -173,7 +176,7 @@ export class MetadataStorage {
   private buildFieldResolverMetadata(definitions: FieldResolverMetadata[]) {
     this.buildResolversMetadata(definitions);
     definitions.forEach(def => {
-      def.roles = this.findFieldRoles(def.target, def.methodName);
+      def.rule = this.findFieldRules(def.target, def.name);
       def.getObjectType =
         def.kind === "external"
           ? this.resolverClasses.find(resolver => resolver.target === def.target)!.getObjectType
@@ -184,15 +187,13 @@ export class MetadataStorage {
         const objectType = this.objectTypes.find(
           objTypeDef => objTypeDef.target === objectTypeCls,
         )!;
-        const objectTypeField = objectType.fields!.find(
-          fieldDef => fieldDef.name === def.methodName,
-        )!;
+        const objectTypeField = objectType.fields!.find(fieldDef => fieldDef.name === def.name)!;
         if (!objectTypeField) {
           if (!def.getType || !def.typeOptions) {
-            throw new NoExplicitTypeError(def.target.name, def.methodName);
+            throw new NoExplicitTypeError(def.target.name, def.name);
           }
           const fieldMetadata: FieldMetadata = {
-            name: def.methodName,
+            name: def.name,
             schemaName: def.schemaName,
             getType: def.getType!,
             target: objectTypeCls,
@@ -200,7 +201,7 @@ export class MetadataStorage {
             deprecationReason: def.deprecationReason,
             description: def.description,
             complexity: def.complexity,
-            roles: def.roles!,
+            rule: def.rule!,
             middlewares: def.middlewares!,
             params: def.params!,
           };
@@ -211,10 +212,10 @@ export class MetadataStorage {
           if (objectTypeField.params!.length === 0) {
             objectTypeField.params = def.params!;
           }
-          if (def.roles) {
-            objectTypeField.roles = def.roles;
-          } else if (objectTypeField.roles) {
-            def.roles = objectTypeField.roles;
+          if (def.rule) {
+            objectTypeField.rule = def.rule;
+          } else if (objectTypeField.rule) {
+            def.rule = objectTypeField.rule;
           }
         }
       }
@@ -244,13 +245,13 @@ export class MetadataStorage {
     });
   }
 
-  private findFieldRoles(target: Function, fieldName: string): any[] | undefined {
+  private findFieldRules(target: Function, fieldName: string): any | undefined {
     const authorizedField = this.authorizedFields.find(
       authField => authField.target === target && authField.fieldName === fieldName,
     );
     if (!authorizedField) {
       return;
     }
-    return authorizedField.roles;
+    return authorizedField.rule;
   }
 }

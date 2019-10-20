@@ -32,6 +32,13 @@ export function Resolver(
             `No provided object type in '@Resolver' decorator for class '${target.name}!'`,
           );
         };
+    try {
+      (target as any).__schemaName__ =
+        (getObjectType && (getObjectType() as any).__schemaName__) || target.name;
+    } catch (_) {
+      (target as any).__schemaName__ = target.name;
+    }
+
     getMetadataStorage().collectResolverClassMetadata({
       target,
       getObjectType,

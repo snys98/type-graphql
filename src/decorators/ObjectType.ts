@@ -18,6 +18,8 @@ export function ObjectType(
   const interfaceClasses = options.implements && ([] as Function[]).concat(options.implements);
 
   return target => {
+    // tslint:disable-next-line: no-string-literal
+    (target as any)["__schemaName__"] = name || target.name;
     getMetadataStorage().collectObjectMetadata({
       name: name || target.name,
       target,

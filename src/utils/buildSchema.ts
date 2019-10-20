@@ -1,5 +1,5 @@
-import { GraphQLSchema } from "graphql";
-import { Options as PrintSchemaOptions } from "graphql/utilities/schemaPrinter";
+import { GraphQLSchema, validateSchema, GraphQLObjectType } from "graphql";
+import { Options as PrintSchemaOptions, printSchema } from "graphql/utilities/schemaPrinter";
 import * as path from "path";
 
 import { SchemaGenerator, SchemaGeneratorOptions } from "../schema/schema-generator";
@@ -10,6 +10,19 @@ import {
   defaultPrintSchemaOptions,
 } from "./emitSchemaDefinitionFile";
 import { NonEmptyArray } from "./types";
+import { createResolversMap } from "./createResolversMap";
+import { makeExecutableSchema } from "graphql-tools";
+import { applyMiddleware } from "graphql-middleware";
+import { getMetadataStorage } from "../metadata/getMetadataStorage";
+import {
+  AuthorizedMetadata,
+  FieldMetadata,
+  ResolverMetadata,
+  FieldResolverMetadata,
+} from "../metadata/definitions";
+import { shield } from "graphql-shield";
+import { IRuleTypeMap, ShieldRule } from "graphql-shield/dist/types";
+import { UnauthorizedError } from "../errors";
 
 interface EmitSchemaFileOptions extends PrintSchemaOptions {
   path?: string;
@@ -32,7 +45,77 @@ export async function buildSchema(options: BuildSchemaOptions): Promise<GraphQLS
     const { schemaFileName, printSchemaOptions } = getEmitSchemaDefinitionFileOptions(options);
     await emitSchemaDefinitionFile(schemaFileName, schema, printSchemaOptions);
   }
+  try {
+    attachPermissions(schema);
+  } catch (error) {
+    if (options.skipCheck) {
+      return schema;
+    }
+    throw error;
+  }
+  // const typeDefs = printSchema(schema);
+  // const resolverMaps = createResolversMap(schema);
+  // const executableSchema = makeExecutableSchema({
+  //   typeDefs,
+  //   resolvers: resolverMaps,
+  // });
   return schema;
+}
+
+function attachPermissions(schema: GraphQLSchema) {
+  const {
+    queries,
+    mutations,
+    subscriptions,
+    authorizedFields,
+    fields,
+    fieldResolvers,
+  } = getMetadataStorage();
+  const error = validateSchema(schema) && validateSchema(schema)[0];
+  if (error !== undefined) {
+    throw error;
+  }
+  const resolvers = [...queries, ...mutations, ...subscriptions, ...fields, ...fieldResolvers];
+  const _authorizedFields = authorizedFields.map(meta => {
+    return {
+      ...resolvers.find(
+        field => field.name === meta.fieldName && field.target.name === meta.target.name,
+      )!,
+      ...meta,
+    } as AuthorizedMetadata & FieldMetadata & ResolverMetadata & FieldResolverMetadata;
+  });
+  const shieldTree: { [k: string]: any } = {};
+  const types = Object.entries(schema.getTypeMap());
+  types
+    .filter(type => Object.getOwnPropertyDescriptor(type[1], "_fields"))
+    .forEach(type => {
+      const fieldsOfAType = Object.entries(
+        (type[1] as Pick<GraphQLObjectType, "getFields">).getFields(),
+      );
+      // shieldTree[type[0]]
+      const _shieldTree = {} as { [k: string]: any };
+      fieldsOfAType.forEach(fieldInSchema => {
+        // tslint:disable-next-line: no-string-literal
+        const fieldMeta = _authorizedFields.find(
+          x =>
+            x.schemaName === fieldInSchema[0] &&
+            ((x.target as any)["__schemaName__"] === type[1].name || type[1].name === x.type),
+        );
+        if (fieldMeta) {
+          _shieldTree[fieldMeta!.schemaName] = fieldMeta!.rule;
+        }
+      });
+      shieldTree[type[0]] = _shieldTree;
+    });
+
+  applyMiddleware(
+    schema,
+    shield(shieldTree, {
+      fallbackError: new UnauthorizedError(),
+      allowExternalErrors: true,
+      debug: true,
+    }),
+  );
 }
 
 export function buildSchemaSync(options: BuildSchemaOptions): GraphQLSchema {
@@ -42,7 +125,12 @@ export function buildSchemaSync(options: BuildSchemaOptions): GraphQLSchema {
     const { schemaFileName, printSchemaOptions } = getEmitSchemaDefinitionFileOptions(options);
     emitSchemaDefinitionFileSync(schemaFileName, schema, printSchemaOptions);
   }
-  return schema;
+  const typeDefs = printSchema(schema);
+  const resolverMaps = createResolversMap(schema);
+  return makeExecutableSchema({
+    typeDefs,
+    resolvers: resolverMaps,
+  });
 }
 
 function loadResolvers(options: BuildSchemaOptions): Function[] | undefined {

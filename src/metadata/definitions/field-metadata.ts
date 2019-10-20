@@ -2,6 +2,7 @@ import { ParamMetadata } from "./param-metadata";
 import { TypeValueThunk, TypeOptions } from "../../decorators/types";
 import { Middleware } from "../../interfaces/Middleware";
 import { Complexity } from "../../interfaces";
+import { ShieldRule } from "graphql-shield/dist/types";
 
 export interface FieldMetadata {
   target: Function;
@@ -13,6 +14,6 @@ export interface FieldMetadata {
   deprecationReason: string | undefined;
   complexity: Complexity | undefined;
   params?: ParamMetadata[];
-  roles?: any[];
+  rule?: ShieldRule;
   middlewares?: Array<Middleware<any>>;
 }

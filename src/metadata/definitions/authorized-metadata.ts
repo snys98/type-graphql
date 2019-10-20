@@ -1,5 +1,7 @@
+import { ShieldRule } from "graphql-shield/dist/types";
+
 export interface AuthorizedMetadata {
   target: Function;
   fieldName: string;
-  roles: any[];
+  rule: ShieldRule;
 }

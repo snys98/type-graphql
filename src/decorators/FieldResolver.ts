@@ -44,7 +44,7 @@ export function FieldResolver(
 
     getMetadataStorage().collectFieldResolverMetadata({
       kind: "external",
-      methodName: propertyKey,
+      name: propertyKey,
       schemaName: options.name || propertyKey,
       target: prototype.constructor,
       getType,

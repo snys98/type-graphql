@@ -21,8 +21,6 @@ export interface BuildContextOptions {
    * You can also directly pass validator options to enable validator with a given options.
    */
   validate?: boolean | ValidatorOptions;
-  authChecker?: AuthChecker<any, any>;
-  authMode?: AuthMode;
   pubSub?: PubSubEngine | PubSubOptions;
   globalMiddlewares?: Array<Middleware<any>>;
   container?: ContainerType | ContainerGetter<any>;
@@ -57,14 +55,6 @@ export abstract class BuildContext {
 
     if (options.validate !== undefined) {
       this.validate = options.validate;
-    }
-
-    if (options.authChecker !== undefined) {
-      this.authChecker = options.authChecker;
-    }
-
-    if (options.authMode !== undefined) {
-      this.authMode = options.authMode;
     }
 
     if (options.pubSub !== undefined) {

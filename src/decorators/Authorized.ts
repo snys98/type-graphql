@@ -1,17 +1,17 @@
 import { getMetadataStorage } from "../metadata/getMetadataStorage";
-import { SymbolKeysNotSupportedError } from "../errors";
-import { getArrayFromOverloadedRest } from "../helpers/decorators";
+import { SymbolKeysNotSupportedError, ForbiddenError } from "../errors";
 import { MethodAndPropDecorator } from "./types";
+import { ShieldRule } from "graphql-shield/dist/types";
+import { rule as ruleFunc, and } from "graphql-shield";
 
-export function Authorized(): MethodAndPropDecorator;
-export function Authorized<RoleType = string>(roles: RoleType[]): MethodAndPropDecorator;
-export function Authorized<RoleType = string>(...roles: RoleType[]): MethodAndPropDecorator;
-export function Authorized<RoleType = string>(
-  ...rolesOrRolesArray: Array<RoleType | RoleType[]>
-): MethodDecorator | PropertyDecorator {
-  const roles = getArrayFromOverloadedRest(rolesOrRolesArray);
+export const defaultAuthRule = ruleFunc({ cache: "contextual" })(
+  async (parent, args, ctx, info) => {
+    return ctx.user !== undefined;
+  },
+);
 
-  return (prototype, propertyKey, descriptor) => {
+export function Authorized(rule: ShieldRule = defaultAuthRule): MethodAndPropDecorator {
+  return (prototype: any, propertyKey: any) => {
     if (typeof propertyKey === "symbol") {
       throw new SymbolKeysNotSupportedError();
     }
@@ -19,7 +19,7 @@ export function Authorized<RoleType = string>(
     getMetadataStorage().collectAuthorizedFieldMetadata({
       target: prototype.constructor,
       fieldName: propertyKey,
-      roles,
+      rule: rule!,
     });
   };
 }

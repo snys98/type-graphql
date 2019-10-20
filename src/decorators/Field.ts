@@ -34,6 +34,7 @@ export function Field(
       typeOptions: options,
     });
 
+    // tslint:disable-next-line: no-string-literal
     getMetadataStorage().collectClassFieldMetadata({
       name: propertyKey,
       schemaName: options.name || propertyKey,
@@ -48,7 +49,7 @@ export function Field(
     if (isResolver) {
       getMetadataStorage().collectFieldResolverMetadata({
         kind: "internal",
-        methodName: propertyKey,
+        name: propertyKey,
         schemaName: options.name || propertyKey,
         target: prototype.constructor,
         complexity: options.complexity,

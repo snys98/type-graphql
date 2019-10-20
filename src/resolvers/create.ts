@@ -15,14 +15,14 @@ export function createHandlerResolver(
 ): GraphQLFieldResolver<any, any, any> {
   const {
     validate: globalValidate,
-    authChecker,
+    // authChecker,
     authMode,
     pubSub,
     globalMiddlewares,
     container,
   } = BuildContext;
   const middlewares = globalMiddlewares.concat(resolverMetadata.middlewares!);
-  applyAuthChecker(middlewares, authMode, authChecker, resolverMetadata.roles);
+  applyAuthChecker(middlewares, authMode);
 
   return async (root, args, context, info) => {
     const resolverData: ResolverData<any> = { root, args, context, info };
@@ -34,7 +34,7 @@ export function createHandlerResolver(
         globalValidate,
         pubSub,
       );
-      return targetInstance[resolverMetadata.methodName].apply(targetInstance, params);
+      return targetInstance[resolverMetadata.name].apply(targetInstance, params);
     });
   };
 }
@@ -47,22 +47,15 @@ export function createAdvancedFieldResolver(
   }
 
   const targetType = fieldResolverMetadata.getObjectType!();
-  const {
-    validate: globalValidate,
-    authChecker,
-    authMode,
-    pubSub,
-    globalMiddlewares,
-    container,
-  } = BuildContext;
+  const { validate: globalValidate, authMode, pubSub, globalMiddlewares, container } = BuildContext;
   const middlewares = globalMiddlewares.concat(fieldResolverMetadata.middlewares!);
-  applyAuthChecker(middlewares, authMode, authChecker, fieldResolverMetadata.roles);
+  applyAuthChecker(middlewares, authMode);
 
   return async (root, args, context, info) => {
     const resolverData: ResolverData<any> = { root, args, context, info };
     const targetInstance: any = convertToType(targetType, root);
     return applyMiddlewares(container, resolverData, middlewares, async () => {
-      const handlerOrGetterValue = targetInstance[fieldResolverMetadata.methodName];
+      const handlerOrGetterValue = targetInstance[fieldResolverMetadata.name];
       // method
       if (typeof handlerOrGetterValue === "function") {
         const params: any[] = await getParams(
@@ -84,7 +77,7 @@ export function createSimpleFieldResolver(
 ): GraphQLFieldResolver<any, any, any> {
   const { authChecker, authMode, globalMiddlewares, container } = BuildContext;
   const middlewares = globalMiddlewares.concat(fieldMetadata.middlewares!);
-  applyAuthChecker(middlewares, authMode, authChecker, fieldMetadata.roles);
+  applyAuthChecker(middlewares, authMode);
 
   return async (root, args, context, info) => {
     const resolverData: ResolverData<any> = { root, args, context, info };

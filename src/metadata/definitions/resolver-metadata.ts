@@ -10,19 +10,21 @@ import {
 import { ParamMetadata } from "./param-metadata";
 import { Middleware } from "../../interfaces/Middleware";
 import { Complexity } from "../../interfaces";
+import { ShieldRule } from "graphql-shield/dist/types";
 
 export interface BaseResolverMetadata {
-  methodName: string;
+  name: string;
   schemaName: string;
   target: Function;
   complexity: Complexity | undefined;
   resolverClassMetadata?: ResolverClassMetadata;
   params?: ParamMetadata[];
-  roles?: any[];
+  rule?: ShieldRule;
   middlewares?: Array<Middleware<any>>;
 }
 
 export interface ResolverMetadata extends BaseResolverMetadata {
+  type: "Query" | "Mutation" | "Subscription";
   getReturnType: TypeValueThunk;
   returnTypeOptions: TypeOptions;
   description?: string;

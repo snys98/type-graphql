@@ -2,6 +2,15 @@ import { Resolver, Query, Authorized, Mutation, Arg } from "../../src";
 
 import { Recipe } from "./recipe.type";
 import { createRecipe, sampleRecipes } from "./recipe.helpers";
+import { rule } from "graphql-shield";
+export const inRoleOf = (...roles: string[]) =>
+  rule({ cache: "contextual" })(async (parent, args, ctx, info) =>
+    ctx.user.roles.some((role: string) => roles.includes(role)),
+  );
+
+export const admin = rule({ cache: "contextual" })(async (parent, args, ctx, info) => {
+  return ctx.user.roles.some((role: string) => role === "admin");
+});
 
 @Resolver()
 export class ExampleResolver {
@@ -28,7 +37,7 @@ export class ExampleResolver {
     return newRecipe;
   }
 
-  @Authorized("ADMIN") // only admin can remove the published recipe
+  @Authorized(inRoleOf("admin")) // only admin can remove the published recipe
   @Mutation()
   deleteRecipe(@Arg("title") title: string): boolean {
     const foundRecipeIndex = this.recipesData.findIndex(it => it.title === title);

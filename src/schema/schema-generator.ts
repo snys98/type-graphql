@@ -121,11 +121,11 @@ export abstract class SchemaGenerator {
 
   private static checkForErrors(options: SchemaGeneratorOptions) {
     ensureInstalledCorrectGraphQLPackage();
-    if (getMetadataStorage().authorizedFields.length !== 0 && options.authChecker === undefined) {
-      throw new Error(
-        "You need to provide `authChecker` function for `@Authorized` decorator usage!",
-      );
-    }
+    // if (getMetadataStorage().authorizedFields.length !== 0 && options.authChecker === undefined) {
+    //   throw new Error(
+    //     "You need to provide `authChecker` function for `@Authorized` decorator usage!",
+    //   );
+    // }
   }
 
   private static getDefaultValue(
@@ -289,7 +289,7 @@ export abstract class SchemaGenerator {
                 const fieldResolverMetadata = getMetadataStorage().fieldResolvers.find(
                   resolver =>
                     resolver.getObjectType!() === objectType.target &&
-                    resolver.methodName === field.name &&
+                    resolver.name === field.name &&
                     (resolver.resolverClassMetadata === undefined ||
                       resolver.resolverClassMetadata.isAbstract === false),
                 );
@@ -451,7 +451,7 @@ export abstract class SchemaGenerator {
       }
       fields[handler.schemaName] = {
         type: this.getGraphQLOutputType(
-          handler.methodName,
+          handler.name,
           handler.getReturnType(),
           handler.returnTypeOptions,
         ),
@@ -490,7 +490,7 @@ export abstract class SchemaGenerator {
           const resolverTopicData: ResolverTopicData = { payload, args, context, info };
           const topics = getTopics(resolverTopicData);
           if (Array.isArray(topics) && topics.length === 0) {
-            throw new MissingSubscriptionTopicsError(handler.target, handler.methodName);
+            throw new MissingSubscriptionTopicsError(handler.target, handler.name);
           }
           return pubSub.asyncIterator(topics);
         };
