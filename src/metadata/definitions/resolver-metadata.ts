@@ -10,6 +10,7 @@ import {
 import { ParamMetadata } from "./param-metadata";
 import { Middleware } from "../../interfaces/Middleware";
 import { Complexity } from "../../interfaces";
+import { DirectiveMetadata } from "./directive-metadata";
 import { ShieldRule } from "graphql-shield/dist/types";
 
 export interface BaseResolverMetadata {
@@ -21,6 +22,7 @@ export interface BaseResolverMetadata {
   params?: ParamMetadata[];
   rule?: ShieldRule;
   middlewares?: Array<Middleware<any>>;
+  directives?: DirectiveMetadata[];
 }
 
 export interface ResolverMetadata extends BaseResolverMetadata {

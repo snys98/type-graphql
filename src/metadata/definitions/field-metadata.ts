@@ -2,6 +2,7 @@ import { ParamMetadata } from "./param-metadata";
 import { TypeValueThunk, TypeOptions } from "../../decorators/types";
 import { Middleware } from "../../interfaces/Middleware";
 import { Complexity } from "../../interfaces";
+import { DirectiveMetadata } from "./directive-metadata";
 import { ShieldRule } from "graphql-shield/dist/types";
 
 export interface FieldMetadata {
@@ -16,4 +17,5 @@ export interface FieldMetadata {
   params?: ParamMetadata[];
   rule?: ShieldRule;
   middlewares?: Array<Middleware<any>>;
+  directives?: DirectiveMetadata[];
 }

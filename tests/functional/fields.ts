@@ -10,7 +10,7 @@ import {
 
 import { getMetadataStorage } from "../../src/metadata/getMetadataStorage";
 import { getSchemaInfo } from "../helpers/getSchemaInfo";
-import { ObjectType, Field, Query, Resolver } from "../../src";
+import { ObjectType, Field, Query, Resolver, Directive } from "../../src";
 import { NullableListOptions } from "../../src/decorators/types";
 
 describe("Fields - schema", () => {

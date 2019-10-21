@@ -1,4 +1,4 @@
-import { GraphQLSchema, validateSchema, GraphQLObjectType } from "graphql";
+import { GraphQLSchema, GraphQLDirective, validateSchema, GraphQLObjectType } from "graphql";
 import { Options as PrintSchemaOptions, printSchema } from "graphql/utilities/schemaPrinter";
 import * as path from "path";
 
@@ -23,7 +23,8 @@ import {
 import { shield } from "graphql-shield";
 import { IRuleTypeMap, ShieldRule } from "graphql-shield/dist/types";
 import { UnauthorizedError } from "../errors";
-
+import { ComplexitySchemaDirectiveVisitor } from "../schema/ComplexitySchemaDirectiveVisitor";
+import { printSchemaWithDirectives } from "./schemaPrinter";
 interface EmitSchemaFileOptions extends PrintSchemaOptions {
   path?: string;
 }
@@ -53,10 +54,11 @@ export async function buildSchema(options: BuildSchemaOptions): Promise<GraphQLS
     }
     throw error;
   }
-  // const typeDefs = printSchema(schema);
+  // const typeDefs = printSchemaWithDirectives(schema);
   // const resolverMaps = createResolversMap(schema);
   // const executableSchema = makeExecutableSchema({
   //   typeDefs,
+  //   schemaDirectives: { complexity: ComplexitySchemaDirectiveVisitor },
   //   resolvers: resolverMaps,
   // });
   return schema;
@@ -85,7 +87,7 @@ function attachPermissions(schema: GraphQLSchema) {
     } as AuthorizedMetadata & FieldMetadata & ResolverMetadata & FieldResolverMetadata;
   });
   const shieldTree: { [k: string]: any } = {};
-  const types = Object.entries(schema.getTypeMap());
+  const types = Object.entries(schema.getTypeMap()).filter(x => !x[0].startsWith("__"));
   types
     .filter(type => Object.getOwnPropertyDescriptor(type[1], "_fields"))
     .forEach(type => {
@@ -99,23 +101,26 @@ function attachPermissions(schema: GraphQLSchema) {
         const fieldMeta = _authorizedFields.find(
           x =>
             x.schemaName === fieldInSchema[0] &&
-            ((x.target as any)["__schemaName__"] === type[1].name || type[1].name === x.type),
+            ((x.target as any).__schemaName__ === type[1].name || type[1].name === x.type),
         );
-        if (fieldMeta) {
+        if (fieldMeta && fieldMeta!.rule) {
           _shieldTree[fieldMeta!.schemaName] = fieldMeta!.rule;
         }
       });
-      shieldTree[type[0]] = _shieldTree;
+      if (Object.keys(_shieldTree).length > 0) {
+        shieldTree[type[0]] = _shieldTree;
+      }
     });
-
-  applyMiddleware(
-    schema,
-    shield(shieldTree, {
-      fallbackError: new UnauthorizedError(),
-      allowExternalErrors: true,
-      debug: true,
-    }),
-  );
+  if (Object.keys(shieldTree).length > 0) {
+    applyMiddleware(
+      schema,
+      shield(shieldTree, {
+        fallbackError: new UnauthorizedError(),
+        allowExternalErrors: true,
+        debug: true,
+      }),
+    );
+  }
 }
 
 export function buildSchemaSync(options: BuildSchemaOptions): GraphQLSchema {
@@ -125,12 +130,15 @@ export function buildSchemaSync(options: BuildSchemaOptions): GraphQLSchema {
     const { schemaFileName, printSchemaOptions } = getEmitSchemaDefinitionFileOptions(options);
     emitSchemaDefinitionFileSync(schemaFileName, schema, printSchemaOptions);
   }
-  const typeDefs = printSchema(schema);
-  const resolverMaps = createResolversMap(schema);
-  return makeExecutableSchema({
-    typeDefs,
-    resolvers: resolverMaps,
-  });
+  try {
+    attachPermissions(schema);
+  } catch (error) {
+    if (options.skipCheck) {
+      return schema;
+    }
+    throw error;
+  }
+  return schema;
 }
 
 function loadResolvers(options: BuildSchemaOptions): Function[] | undefined {
